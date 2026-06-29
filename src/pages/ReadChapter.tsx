@@ -25,10 +25,6 @@ const ReadChapter = () => {
     }
   }, [chapterId]);
 
-  useEffect(() => {
-    console.log(chapter);
-  }, [chapter]);
-
   if (loading)
     return (
       <div className="text-center text-xl mt-10 text-gray-400">

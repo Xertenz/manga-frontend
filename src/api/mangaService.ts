@@ -25,4 +25,17 @@ export const mangaService = {
     const response = await api.get(`/chapters/${id}`);
     return response.data;
   },
+
+  login: async (credentials: {
+    email: string;
+    password: string;
+  }): Promise<any> => {
+    const response = await api.post("/login", credentials);
+    return response.data;
+  },
+
+  logout: async (): Promise<any> => {
+    const response = await api.post("/logout");
+    return response.data;
+  },
 };
