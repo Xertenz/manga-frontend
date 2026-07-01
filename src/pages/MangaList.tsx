@@ -63,16 +63,16 @@ const MangaList = () => {
                   {manga.status}
                 </span>
                 <h3 className="text-xl font-bold mt-2 truncate text-white">
-                  {manga.title}
+                  {manga.title.en}
                 </h3>
                 <p className="text-gray-400 text-sm mt-2 line-clamp-3">
-                  {manga.description}
+                  {manga.description?.en}
                 </p>
                 <div className="mt-4 pt-3 border-t border-gray-700 flex justify-between items-center text-xs text-gray-400">
                   <span>
                     By:{" "}
                     <strong className="text-indigo-300">
-                      {manga.artist.name}
+                      {manga.artist ? manga.artist.name : "Unknown"}
                     </strong>
                   </span>
                 </div>

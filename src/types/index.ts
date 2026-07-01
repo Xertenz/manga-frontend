@@ -3,6 +3,11 @@ export interface Artist {
   name: string;
 }
 
+interface LocalizedString {
+  en: string;
+  ar: string;
+}
+
 export interface Page {
   id: number;
   file_name: string;
@@ -20,9 +25,9 @@ export interface Chapter {
 
 export interface Manga {
   id: number;
-  title: string;
-  description: string;
-  status: "ongoing" | "completed";
+  title: LocalizedString;
+  description: LocalizedString;
+  status: "ongoing" | "completed" | "hiatus";
   artist: Artist;
   chapters?: Chapter[];
   created_at: string;

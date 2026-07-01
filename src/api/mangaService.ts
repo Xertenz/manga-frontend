@@ -12,6 +12,15 @@ export const mangaService = {
     return response.data;
   },
 
+  uploadManga: async (formData: FormData): Promise<any> => {
+    const response = await api.post("/mangas", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+
   uploadChapter: async (formData: FormData): Promise<any> => {
     const response = await api.post("/chapters", formData, {
       headers: {

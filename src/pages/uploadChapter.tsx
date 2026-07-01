@@ -139,7 +139,7 @@ const UploadChapter = () => {
           >
             {mangas.map((m) => (
               <option key={m.id} value={m.id}>
-                {m.title}
+                {m.title.en}
               </option>
             ))}
           </select>

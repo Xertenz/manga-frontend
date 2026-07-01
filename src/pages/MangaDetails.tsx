@@ -43,7 +43,7 @@ const MangaDetails = () => {
       <div className="md:flex gap-6 mt-2">
         <div className="flex-1">
           <h2 className="text-4xl font-extrabold text-white mb-2">
-            {manga.title}
+            {manga.title.en}
           </h2>
           <p className="text-sm text-gray-400 mb-4">
             Artist:{" "}
@@ -52,7 +52,7 @@ const MangaDetails = () => {
             </span>
           </p>
           <p className="text-gray-300 leading-relaxed bg-gray-900 p-4 rounded-lg border border-gray-700">
-            {manga.description}
+            {manga.description?.en}
           </p>
         </div>
       </div>

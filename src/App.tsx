@@ -12,6 +12,7 @@ import ReadChapter from "./pages/ReadChapter";
 import Login from "./pages/Login";
 import { mangaService } from "./api/mangaService";
 import { useState } from "react";
+import { CreateManga } from "./pages/CreateManga";
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("auth_token"));
@@ -80,6 +81,7 @@ function App() {
           <Routes>
             <Route path="/" element={<MangaList />} />
             <Route path="/manga/:id" element={<MangaDetails />} />
+            <Route path="/manga/create" element={<CreateManga />} />
             <Route
               path="/upload"
               element={

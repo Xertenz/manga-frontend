@@ -53,10 +53,6 @@ const ReadChapter = () => {
     }
   }, [chapterId]);
 
-  useEffect(() => {
-    console.log(chapter);
-  }, [chapter]);
-
   if (loading) {
     return (
       <div className="text-center py-12 text-indigo-400 font-medium">
