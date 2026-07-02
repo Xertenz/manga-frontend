@@ -3,22 +3,6 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { mangaService } from "../api/mangaService";
 import { type Chapter } from "../types";
 
-interface PageInfo {
-  id: number;
-  name: string;
-  file_name: string;
-  order: number;
-  url: string;
-  fallback_url: string; // الرابط الاحتياطي الجديد 💡
-}
-
-interface ChapterInfo {
-  id: number;
-  chapter_number: number;
-  title?: string;
-  pages: PageInfo[];
-}
-
 interface ChapterLink {
   id: number;
   chapter_number: number;
@@ -32,7 +16,7 @@ const ReadChapter = () => {
 
   const navigate = useNavigate();
 
-  const [chapter, setChapter] = useState<ChapterInfo | null>(null);
+  const [chapter, setChapter] = useState<Chapter | null>(null);
   const [allChapters, setAllChapters] = useState<ChapterLink[]>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -164,8 +148,8 @@ const ReadChapter = () => {
         <h1 className="text-3xl font-bold text-white">
           Chapter {chapter.chapter_number}
         </h1>
-        {chapter.title && (
-          <p className="text-gray-400 mt-1 italic">{chapter.title}</p>
+        {chapter.title?.en && (
+          <p className="text-gray-400 mt-1 italic">{chapter.title.en}</p>
         )}
       </div>
 

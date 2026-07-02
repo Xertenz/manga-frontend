@@ -35,6 +35,11 @@ export const mangaService = {
     return response.data;
   },
 
+  getAvailableTags: async (): Promise<any> => {
+    const response = await api.get("/tags");
+    return response.data;
+  },
+
   login: async (credentials: {
     email: string;
     password: string;

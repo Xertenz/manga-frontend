@@ -17,6 +17,7 @@ const UploadChapter = () => {
   // حقول الفورم
   const [selectedMangaId, setSelectedMangaId] = useState<string>("");
   const [chapterNumber, setChapterNumber] = useState<string>("");
+  const [lang, setLang] = useState<string>("en"); // 💡 حقل اللغة المضاف ليتوافق مع الباكيند الجديد
   const [chapterTitle, setChapterTitle] = useState<string>("");
   const [sortableFiles, setSortableFiles] = useState<SortableFile[]>([]);
 
@@ -43,8 +44,7 @@ const UploadChapter = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
-      const mappedFiles = filesArray.map((file, index) => ({
-        //id: `${file.name}-${index}-${Date.now()}`,
+      const mappedFiles = filesArray.map((file) => ({
         id: crypto.randomUUID(),
         file: file,
         preview: URL.createObjectURL(file),
@@ -57,13 +57,15 @@ const UploadChapter = () => {
     setSortableFiles((prevFiles) =>
       prevFiles.filter((file) => file.id !== item.id)
     );
+    // تنظيف الـ Memory URL لمنع تسريب الذاكرة (Memory Leaks)
+    URL.revokeObjectURL(item.preview);
   };
 
   // إرسال البيانات للـ Backend
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedMangaId || !chapterNumber || !sortableFiles) {
+    if (!selectedMangaId || !chapterNumber || sortableFiles.length === 0) {
       setError("Please fill in all required fields and select pages.");
       return;
     }
@@ -72,13 +74,17 @@ const UploadChapter = () => {
     setError(null);
     setMessage(null);
 
-    // بناء كائن FormData البرمجي
+    // بناء كائن FormData البرمجي المتوافق مع الباكيند المحدث 🚀
     const formData = new FormData();
     formData.append("manga_id", selectedMangaId.toString());
     formData.append("chapter_number", chapterNumber.toString());
-    if (chapterTitle.trim()) formData.append("title", chapterTitle.trim());
+    formData.append("lang", lang); // 💡 إرسال رمز اللغة المختار (en أو ar)
 
-    // إضافة مصفوفة الصور بنفس الاسم المتوقع في لارافيل 'pages[]'
+    if (chapterTitle.trim()) {
+      formData.append("title", chapterTitle.trim());
+    }
+
+    // إضافة مصفوفة الصور بالترتيب السحري المحدث بعد السحب والإفلات
     sortableFiles.forEach((item: SortableFile) => {
       formData.append("pages[]", item.file);
     });
@@ -86,6 +92,7 @@ const UploadChapter = () => {
     try {
       await mangaService.uploadChapter(formData);
       setMessage("Chapter and pages uploaded successfully!");
+
       // إعادة تهيئة الحقول بعد النجاح
       setChapterNumber("");
       setChapterTitle("");
@@ -135,47 +142,68 @@ const UploadChapter = () => {
           <select
             value={selectedMangaId}
             onChange={(e) => setSelectedMangaId(e.target.value)}
-            className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-white focus:border-indigo-500 focus:outline-none"
+            className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-white focus:border-indigo-500 focus:outline-none font-semibold text-indigo-400"
           >
             {mangas.map((m) => (
               <option key={m.id} value={m.id}>
-                {m.title.en}
+                {m.title.en || m.title.ar || `Manga #${m.id}`}
               </option>
             ))}
           </select>
         </div>
 
-        {/* 2. رقم الفصل */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Chapter Number *
-          </label>
-          <input
-            type="number"
-            step="0.1"
-            placeholder="e.g. 1 or 2.5"
-            value={chapterNumber}
-            onChange={(e) => setChapterNumber(e.target.value)}
-            className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-white focus:border-indigo-500 focus:outline-none"
-            required
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* 2. رقم الفصل */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Chapter Number *
+            </label>
+            <input
+              type="number"
+              step="0.01" // للسماح بكسور الفصول الدقيقة مثل 101.55
+              placeholder="e.g. 1 or 2.5"
+              value={chapterNumber}
+              onChange={(e) => setChapterNumber(e.target.value)}
+              className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-white focus:border-indigo-500 focus:outline-none"
+              required
+            />
+          </div>
+
+          {/* 3. لغة عنوان الفصل الحالية 💡 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Title Language
+            </label>
+            <select
+              value={lang}
+              onChange={(e) => setLang(e.target.value)}
+              className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-white focus:border-indigo-500 focus:outline-none"
+            >
+              <option value="en">English (الإنجليزية)</option>
+              <option value="ar">العربية</option>
+            </select>
+          </div>
         </div>
 
-        {/* 3. عنوان الفصل */}
+        {/* 4. عنوان الفصل مع اتجاه نص ديناميكي */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Chapter Title (Optional)
+            Chapter Title{" "}
+            {lang === "ar" ? "(العنوان بالعربية)" : "(in English)"} (Optional)
           </label>
           <input
             type="text"
-            placeholder="e.g. Romance Dawn"
+            placeholder={
+              lang === "ar" ? "مثال: فجر المغامرة" : "e.g. Romance Dawn"
+            }
             value={chapterTitle}
             onChange={(e) => setChapterTitle(e.target.value)}
+            style={{ direction: lang === "ar" ? "rtl" : "ltr" }}
             className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-white focus:border-indigo-500 focus:outline-none"
           />
         </div>
 
-        {/* حقل اختيار الملفات */}
+        {/* حقل اختيار الملفات الحقيقي المخفي وتحته الزر المنسق */}
         <div className="border-2 border-dashed border-gray-700 rounded-xl p-6 text-center bg-gray-900/50 hover:border-indigo-500 transition duration-200">
           <input
             type="file"
@@ -196,7 +224,7 @@ const UploadChapter = () => {
           </p>
         </div>
 
-        {/* منطقة السحب والإفلات ومعاينة الصور الذكية */}
+        {/* منطقة السحب والإفلات ومعاينة الصور الذكية المرتبة */}
         {sortableFiles.length > 0 && (
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-3">
@@ -207,11 +235,10 @@ const UploadChapter = () => {
               pages selected):
             </label>
 
-            {/* كاميرا الترتيب السحرية السحابة */}
             <ReactSortable
               list={sortableFiles}
               setList={setSortableFiles}
-              animation={200} // نعومة الحركة بالملي ثانية
+              animation={200}
               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 bg-gray-900 p-4 rounded-xl border border-gray-700 min-h-37.5"
             >
               {sortableFiles.map((item, index) => (
@@ -221,17 +248,20 @@ const UploadChapter = () => {
                 >
                   <img
                     src={item.preview}
-                    alt="preview"
+                    alt={`page preview ${index + 1}`}
                     className="w-full h-32 object-cover rounded mb-2 pointer-events-none select-none"
                   />
+                  {/* رقم الصفحة يترتب تلقائياً وديناميكياً حسب السحب */}
                   <div className="absolute top-3 left-3 bg-indigo-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shadow-lg">
                     {index + 1}
                   </div>
+                  {/* زر حذف الصورة الفردية في حال الرفع الخطأ */}
                   <div
                     onClick={() => handleRemoveImage(item)}
-                    className="absolute top-3 right-3 bg-red-600 border border-indigo-600 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shadow-lg cursor-pointer"
+                    className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full shadow-lg cursor-pointer transition duration-150"
+                    title="Remove page"
                   >
-                    {"X"}
+                    ✕
                   </div>
                   <p className="text-xs text-gray-400 truncate text-center px-1">
                     {item.file.name}
@@ -242,13 +272,15 @@ const UploadChapter = () => {
           </div>
         )}
 
-        {/* زر الرفع */}
+        {/* زر الرفع والمعالجة */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-700 text-white font-bold py-3 px-4 rounded transition duration-200 cursor-pointer"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-700 text-white font-bold py-3 px-4 rounded transition duration-200 cursor-pointer disabled:opacity-50"
         >
-          {loading ? "Uploading & Processing Images..." : "Publish Chapter"}
+          {loading
+            ? `Uploading & Processing ${sortableFiles.length} Images...`
+            : "Publish Chapter"}
         </button>
       </form>
     </div>

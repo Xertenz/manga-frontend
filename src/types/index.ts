@@ -1,11 +1,14 @@
+export interface Tag {
+  id: string;
+  type: "genre" | "theme" | "format";
+  name: {
+    [locale: string]: string;
+  };
+}
+
 export interface Artist {
   id: number;
   name: string;
-}
-
-interface LocalizedString {
-  en: string;
-  ar: string;
 }
 
 export interface Page {
@@ -18,17 +21,25 @@ export interface Page {
 export interface Chapter {
   id: number;
   chapter_number: number;
-  title: string | null;
+  title?: {
+    [locale: string]: string;
+  };
   pages?: Page[];
   create_at: string;
 }
 
 export interface Manga {
   id: number;
-  title: LocalizedString;
-  description: LocalizedString;
+  title: {
+    [locale: string]: string;
+  };
+  description: {
+    [locale: string]: string;
+  };
   status: "ongoing" | "completed" | "hiatus";
   artist: Artist;
+  cover_url: string;
+  tags: Tag[];
   chapters?: Chapter[];
   created_at: string;
 }
