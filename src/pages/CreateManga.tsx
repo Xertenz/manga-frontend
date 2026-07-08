@@ -5,7 +5,7 @@ import { mangaService } from "../api/mangaService";
 interface TagOption {
   id: number;
   type: "genre" | "theme" | "format";
-  name: { [key: string]: string }; // كائن يحتوي التراجم مثل {"en": "Action", "ar": "أكشن"}
+  name: string;
 }
 
 export function CreateManga() {
@@ -31,7 +31,7 @@ export function CreateManga() {
     async function fetchTags() {
       try {
         const response = await mangaService.getAvailableTags();
-        setAvailableTags(response.data || response);
+        setAvailableTags(response.data);
       } catch (error) {
         console.error("Failed to load tags", error);
       } finally {
@@ -117,7 +117,7 @@ export function CreateManga() {
           {filteredTags.map((tag) => {
             const isSelected = selectedTagIds.includes(tag.id);
             // جلب اسم الوسم بناءً على اللغة المعروضة حالياً بالموقع أو لغة الإدخال
-            const tagName = tag.name[lang] || tag.name["en"];
+            const tagName = tag.name;
 
             return (
               <button

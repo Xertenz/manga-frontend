@@ -40,6 +40,10 @@ const UploadChapter = () => {
       .finally(() => setFetchingMangas(false));
   }, []);
 
+  useEffect(() => {
+    console.log(mangas);
+  }, [mangas]);
+
   // معالجة اختيار الملفات
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -144,9 +148,9 @@ const UploadChapter = () => {
             onChange={(e) => setSelectedMangaId(e.target.value)}
             className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-white focus:border-indigo-500 focus:outline-none font-semibold text-indigo-400"
           >
-            {mangas.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.title.en || m.title.ar || `Manga #${m.id}`}
+            {mangas.map((manga) => (
+              <option key={manga.id} value={manga.id}>
+                {manga.title || manga.title || `Manga #${manga.id}`}
               </option>
             ))}
           </select>

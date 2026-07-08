@@ -1,9 +1,7 @@
 export interface Tag {
-  id: string;
+  id: number;
   type: "genre" | "theme" | "format";
-  name: {
-    [locale: string]: string;
-  };
+  name: string;
 }
 
 export interface Artist {
@@ -30,16 +28,20 @@ export interface Chapter {
 
 export interface Manga {
   id: number;
-  title: {
-    [locale: string]: string;
-  };
-  description: {
-    [locale: string]: string;
-  };
+  title: string;
+  description?: string;
+  slug: string;
   status: "ongoing" | "completed" | "hiatus";
   artist: Artist;
   cover_url: string;
   tags: Tag[];
   chapters?: Chapter[];
   created_at: string;
+}
+
+export interface SupportedLocale {
+  code: string;
+  name: string;
+  native: string;
+  dir: string;
 }

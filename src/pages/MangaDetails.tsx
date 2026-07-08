@@ -4,7 +4,7 @@ import { mangaService } from "../api/mangaService";
 import { type Manga } from "../types";
 
 const MangaDetails = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, slug } = useParams<{ id: string; slug: string }>();
   const [manga, setManga] = useState<Manga | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentLang, setCurrentLang] = useState<string>("en"); // لغة تصفح الواجهة الحالية
@@ -18,6 +18,10 @@ const MangaDetails = () => {
         .finally(() => setLoading(false));
     }
   }, [id]);
+
+  useEffect(() => {
+    console.log(manga);
+  }, [manga]);
 
   if (loading)
     return (
@@ -48,12 +52,8 @@ const MangaDetails = () => {
   };
 
   // استخراج النصوص المترجمة بناء على لغة العرض الحالية
-  const displayTitle =
-    manga.title[currentLang] || manga.title["en"] || "Untitled";
-  const displayDescription =
-    manga.description?.[currentLang] ||
-    manga.description?.["en"] ||
-    "No description available.";
+  const displayTitle = manga.title || "Untitled";
+  const displayDescription = manga.description || "No description available.";
 
   return (
     <div className="max-w-4xl mx-auto bg-gray-800 rounded-lg p-6 border border-gray-700 shadow-xl my-10 text-white">
@@ -141,7 +141,7 @@ const MangaDetails = () => {
                     tag.type
                   )}`}
                 >
-                  {tag.name[currentLang] || tag.name["en"]}
+                  {tag.name}
                 </span>
               ))}
             </div>

@@ -13,21 +13,26 @@ const ReadChapter = () => {
     mangaId: string;
     chapterId: string;
   }>();
-
   const navigate = useNavigate();
 
   const [chapter, setChapter] = useState<Chapter | null>(null);
-  const [allChapters, setAllChapters] = useState<ChapterLink[]>(null);
+  // 💡 إصلاح 1: جعل الحالة الافتراضية مصفوفة فارغة لمنع انهيار findIndex
+  const [allChapters, setAllChapters] = useState<ChapterLink[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (chapterId) {
+      setLoading(true);
+      setError(null);
       mangaService
         .getChapterById(chapterId)
         .then((response: any) => {
           setChapter(response.data);
-          setAllChapters(response.all_chapters);
+          setAllChapters(response.all_chapters || []);
+
+          // 💡 إصلاح 2: إجبار المتصفح على الصعود لأعلى الصفحة فوراً عند الانتقال لفصل جديد 🔝
+          window.scrollTo({ top: 0, behavior: "smooth" });
         })
         .catch((err) => {
           console.error(err);
@@ -39,23 +44,25 @@ const ReadChapter = () => {
 
   if (loading) {
     return (
-      <div className="text-center py-12 text-indigo-400 font-medium">
-        Loading Chapter Pages...
+      <div className="flex justify-center items-center min-h-screen bg-gray-950 text-indigo-400 font-medium animate-pulse">
+        Loading Chapter Pages... 📖
       </div>
     );
   }
 
-  if (!chapter) {
+  if (error || !chapter) {
     return (
-      <div className="text-center py-12 text-red-400">Chapter not found.</div>
+      <div className="text-center py-12 text-red-400 bg-gray-950 min-h-screen pt-24">
+        {error || "Chapter not found."}
+      </div>
     );
   }
 
-  // --- حسابات التنقل الذكي (Navigation Logic) ---
+  // --- حسابات التنقل الذكي (Navigation Logic المؤمّنة) ---
   const currentIndex = allChapters.findIndex((ch) => ch.id === chapter.id);
   const prevChapter = currentIndex > 0 ? allChapters[currentIndex - 1] : null;
   const nextChapter =
-    currentIndex < allChapters.length - 1
+    currentIndex >= 0 && currentIndex < allChapters.length - 1
       ? allChapters[currentIndex + 1]
       : null;
 
@@ -66,48 +73,29 @@ const ReadChapter = () => {
     }
   };
 
-  // دالة مخصصة لجلب رابط الصورة (تفضل الـ webp المضغوطة وتعود للأصلية كاحتياط)
-  /*
-  const getPageUrl = (mediaItem: any) => {
-    if (
-      mediaItem.generated_conversions &&
-      mediaItem.generated_conversions.optimized
-    ) {
-      const baseUrl = "http://localhost:8000/storage";
-      return `${baseUrl}/${mediaItem.id}/conversions/${mediaItem.name.replace(
-        " ",
-        "-"
-      )}-optimized.webp`;
-    }
-    return mediaItem.original_url;
-  };
-  */
-
-  // مكون شريط التنقل (Navigation Bar Component) المكرر أعلى وأسفل الصور
+  // 💡 مكون عناصر التحكم مع تحسين التجاوب للهواتف
   const NavigationControls = () => (
-    <div className="flex flex-wrap justify-between items-center bg-gray-800 p-4 rounded-lg border border-gray-700 my-6 max-w-3xl mx-auto gap-4">
-      {/* زر الفصل السابق */}
+    <div className="flex flex-row justify-between items-center bg-gray-800 p-3 sm:p-4 rounded-lg border border-gray-700 my-6 max-w-3xl mx-auto gap-2 sm:gap-4 w-full">
       {prevChapter ? (
         <Link
           to={`/manga/${mangaId}/chapter/${prevChapter.id}`}
-          className="bg-gray-700 hover:bg-gray-600 text-white text-sm px-4 py-2 rounded font-medium transition"
+          className="bg-gray-700 hover:bg-gray-600 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 rounded font-medium transition whitespace-nowrap"
         >
-          ← Prev Ch. {prevChapter.chapter_number}
+          ← Ch. {prevChapter.chapter_number}
         </Link>
       ) : (
         <button
           disabled
-          className="bg-gray-800 text-gray-600 text-sm px-4 py-2 rounded font-medium border border-gray-700 cursor-not-allowed"
+          className="bg-gray-800 text-gray-600 text-xs sm:text-sm px-3 sm:px-4 py-2 rounded font-medium border border-gray-700 cursor-not-allowed whitespace-nowrap"
         >
-          Start of Manga
+          First Chapter
         </button>
       )}
 
-      {/* قائمة الانتقال السريع المنسدلة */}
       <select
         value={chapter.id}
         onChange={handleDropdownChange}
-        className="bg-gray-900 border border-gray-700 text-white p-2 rounded text-sm focus:outline-none focus:border-indigo-500 font-medium cursor-pointer"
+        className="bg-gray-900 border border-gray-700 text-white p-1.5 sm:p-2 rounded text-xs sm:text-sm focus:outline-none focus:border-indigo-500 font-medium cursor-pointer max-w-[120px] sm:max-w-none"
       >
         {allChapters.map((ch) => (
           <option key={ch.id} value={ch.id}>
@@ -116,28 +104,26 @@ const ReadChapter = () => {
         ))}
       </select>
 
-      {/* زر الفصل التالي */}
       {nextChapter ? (
         <Link
           to={`/manga/${mangaId}/chapter/${nextChapter.id}`}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded font-medium transition"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 rounded font-medium transition whitespace-nowrap"
         >
-          Next Ch. {nextChapter.chapter_number} →
+          Ch. {nextChapter.chapter_number} →
         </Link>
       ) : (
         <button
           disabled
-          className="bg-gray-800 text-gray-600 text-sm px-4 py-2 rounded font-medium border border-gray-700 cursor-not-allowed"
+          className="bg-gray-800 text-gray-600 text-xs sm:text-sm px-3 sm:px-4 py-2 rounded font-medium border border-gray-700 cursor-not-allowed whitespace-nowrap"
         >
-          End of Manga
+          Last Chapter
         </button>
       )}
     </div>
   );
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* رأس الصفحة */}
+    <div className="min-h-screen bg-gray-950 p-4 sm:p-6 text-white">
       <div className="text-center mb-6">
         <Link
           to={`/manga/${mangaId}`}
@@ -149,29 +135,30 @@ const ReadChapter = () => {
           Chapter {chapter.chapter_number}
         </h1>
         {chapter.title?.en && (
-          <p className="text-gray-400 mt-1 italic">{chapter.title.en}</p>
+          <p className="text-gray-400 mt-1 italic text-sm">
+            {chapter.title.en}
+          </p>
         )}
       </div>
 
-      {/* عناصر التحكم العلوية */}
       <NavigationControls />
 
-      {/* مجلد وعارض الصور الطولي */}
-      <div className="flex flex-col items-center bg-black p-2 md:p-6 rounded-xl border border-gray-800 shadow-2xl space-y-1 max-w-3xl mx-auto">
+      {/* عارض الصور المانغا الطولي المطور */}
+      <div className="flex flex-col items-center bg-black rounded-xl border border-gray-800 shadow-2xl space-y-0.5 max-w-2xl mx-auto overflow-hidden">
         {chapter.pages && chapter.pages.length > 0 ? (
           chapter.pages.map((page: any, index: number) => (
             <img
               key={page.id}
-              //src={getPageUrl(page)}
               src={page.url}
               alt={`Page ${index + 1}`}
-              className="w-full h-auto object-contain select-none pointer-events-none"
+              className="w-full h-auto object-contain select-none pointer-events-none block"
               loading="lazy"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                if (target.src !== page.fallback_url) {
+                // تفعيل منطق الـ Fallback إذا فشلت الـ WebP وجلب الرابط الاحتياطي
+                if (page.fallback_url && target.src !== page.fallback_url) {
                   console.warn(
-                    `WebP image failed, falling back to original: ${page.url}`
+                    `WebP image failed, falling back to original: ${page.fallback_url}`
                   );
                   target.src = page.fallback_url;
                 }
@@ -179,13 +166,12 @@ const ReadChapter = () => {
             />
           ))
         ) : (
-          <div className="text-center py-20 text-gray-500">
+          <div className="text-center py-20 text-gray-500 text-sm">
             No pages uploaded for this chapter yet.
           </div>
         )}
       </div>
 
-      {/* عناصر التحكم السفلية لراحة القارئ بعد إنهاء القراءة */}
       <NavigationControls />
     </div>
   );

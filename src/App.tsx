@@ -13,10 +13,20 @@ import Login from "./pages/Login";
 import { mangaService } from "./api/mangaService";
 import { useState } from "react";
 import { CreateManga } from "./pages/CreateManga";
+import { EditManga } from "./pages/EditManga";
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("auth_token"));
   const [userName, setUserName] = useState(localStorage.getItem("user_name"));
+  const [currentLocale, setCurrentLocale] = useState(() => {
+    return localStorage.getItem("app_locale") || "en";
+  });
+
+  const handleChangeLocale = async (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    await mangaService.changeLanguage(e.target.value);
+  };
 
   const handleLogout = async () => {
     try {
@@ -44,6 +54,11 @@ function App() {
               MangaVerse
             </Link>
 
+            <select value={currentLocale} onChange={handleChangeLocale}>
+              <option value="en">English</option>
+              <option value="ar">Arabic</option>
+            </select>
+
             <div className="flex items-center space-x-4">
               {token ? (
                 <>
@@ -51,6 +66,12 @@ function App() {
                     Welcome,{" "}
                     <strong className="text-gray-200">{userName}</strong>
                   </span>
+                  <Link
+                    to="/manga/create"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded text-sm font-medium transition"
+                  >
+                    + Create Manga
+                  </Link>
                   <Link
                     to="/upload"
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded text-sm font-medium transition"
@@ -80,8 +101,9 @@ function App() {
         <main className="container mx-auto px-4 py-8">
           <Routes>
             <Route path="/" element={<MangaList />} />
-            <Route path="/manga/:id" element={<MangaDetails />} />
+            <Route path="/manga/:id/:slug" element={<MangaDetails />} />
             <Route path="/manga/create" element={<CreateManga />} />
+            <Route path="/manga/:id/edit" element={<EditManga />} />
             <Route
               path="/upload"
               element={
